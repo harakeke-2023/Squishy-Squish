@@ -1,65 +1,56 @@
-// import React from 'react'
-// import { renderIntoeDocument } from 'react-testing-library'
-// import { render, fireEvent, screen, waitFor } from '@testing-library/react'
-// import Name from '../../client/components/Name'
-// import server from '../server'
-// import request from 'supertest'
-// import { addToLeaderboard } from '../../client/apiClient'
+import React from 'react'
+import { render, fireEvent, waitFor, screen } from '@testing-library/react'
+import '@testing-library/jest-dom/extend-expect'
+import Name from '../../client/components/Name'
+import { addToLeaderboard } from '../../client/apiClient'
 
-// // import { setName, setScore } from '../../client/components/Name'
-// // Mocking the API function
-// jest.mock = require('react')('../apiClient')
+jest.mock('../../client/apiClient')
 
-// describe('Get /', () => {
-//   beforeEach(() => {
-//     jest.resetAllMocks()
-//   })
+describe('Name', () => {
+  test('renders the name and score inputs', () => {
+    render(<Name />)
+    expect(screen.getByLabelText('Name:')).toBeInTheDocument()
+    expect(screen.getByLabelText('Score:')).toBeInTheDocument()
+  })
 
-//   test('should render the component', async () => {
-//     render(<Name />)
-//     const response = request(server).get('/api/leaderboard')
+  test('submits the name and score', async () => {
+    const newName = 'Test Name'
+    const newScore = '123'
+    ;(addToLeaderboard as jest.Mock).mockResolvedValueOnce({ id: 1 })
 
-//     expect(screen.getByLabelText('Name:')).renderIntoeDocument()
-//     expect(screen.getByLabelText('Score:')).renderIntoDocument()
-//     expect(screen.getByRole('button')).renderIntoDocument()
-//   })
+    render(<Name />)
 
-//   test('should update the name and score fields when the user types', async () => {
-//     render(<Name />)
-//     const nameInput = screen.getByLabelText('Name:')
-//     const scoreInput = screen.getByLabelText('Score:')
-//     // fireEvent.change(nameInput, { target: { value: 'John' } })
-//     // fireEvent.change(scoreInput, { target: { value: '200' } })
-//     expect(nameInput).toHaveValue('John')
-//     expect(scoreInput).toHaveValue('200')
-//   })
+    fireEvent.change(screen.getByLabelText('Name:'), {
+      target: { value: newName },
+    })
 
-//   test('should call the API with the correct data when the form is submitted', async () => {
-//     render(<Name />)
-//     const nameInput = screen.getByLabelText('Name:')
-//     const scoreInput = screen.getByLabelText('Score:')
-//     fireEvent.change(nameInput, { target: { value: 'John' } })
-//     fireEvent.change(scoreInput, { target: { value: '200' } })
-//     fireEvent.submit(screen.getByRole('button'))
-//     await waitFor(() => expect(addToLeaderboard).toHaveBeenCalledTimes(1))
-//     expect(addToLeaderboard).toHaveBeenCalledWith({
-//       name: 'John',
-//       score: '200',
-//     })
-//   })
+    fireEvent.change(screen.getByLabelText('Score:'), {
+      target: { value: newScore },
+    })
 
-//   test('should display an error message if the API call fails', async () => {
-//     render(<Name />)
-//     const nameInput = screen.getByLabelText('Name:')
-//     const scoreInput = screen.getByLabelText('Score:')
-//     fireEvent.change(nameInput, { target: { value: 'John' } })
-//     fireEvent.change(scoreInput, { target: { value: '200' } })
-//     fireEvent.submit(screen.getByRole('button'))
-//     const response = await request(server).get('/api/leaderboard')
+    fireEvent.submit(screen.getByRole('button', { name: 'Submit' }))
 
-//     expect(response.status).toBe(500)
-//     await waitFor(() =>
-//       expect(screen.getByText('Error adding score')).toBeInTheDocument()
-//     )
-//   })
-// })
+    await waitFor(() =>
+      expect(addToLeaderboard).toHaveBeenCalledWith({
+        name: newName,
+        score: newScore,
+      })
+    )
+
+    expect(screen.getByText('Score added successfully')).toBeInTheDocument()
+  })
+
+  test('displays an error message when the score submission fails', async () => {
+    ;(addToLeaderboard as jest.Mock).mockRejectedValueOnce(
+      new Error('Failed to add score')
+    )
+
+    render(<Name />)
+
+    fireEvent.submit(screen.getByRole('button', { name: 'Submit' }))
+
+    await waitFor(() => expect(addToLeaderboard).toHaveBeenCalled())
+
+    expect(screen.getByText('Error adding score')).toBeInTheDocument()
+  })
+})

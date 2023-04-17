@@ -24,7 +24,7 @@ describe('GET /', () => {
 
   test('should return an error message when failed to fetch data', async () => {
     const errorMessage = 'Failed to fetch leaderboard data'
-    jest.mocked(getReadData).mockRejectedValue('fake error message')
+    jest.mocked(getReadData).mockRejectedValue('error message')
 
     const response = await request(server).get('/api/leaderboard')
 
@@ -33,11 +33,6 @@ describe('GET /', () => {
     expect(getReadData).toHaveBeenCalledTimes(1)
   })
 })
-// beforeEach(() => {
-//   jest.resetAllMocks()
-//   // mock implementation for getReadData
-//   getReadData.mockResolvedValue({ leaderboard: [{ id: 1, name: 'Alice', score: 100 }, { id: 2, name: 'Bob', score: 90 }] })
-// })
 
 describe('POST /', () => {
   beforeEach(() => {

@@ -4,7 +4,7 @@ import { getLeaderboard } from '../../client/apiClient'
 import '@testing-library/jest-dom'
 // import { act } from 'react-dom/test-utils'
 
-jest.mock('../apiClient')
+jest.mock('../../client/apiClient')
 
 const mockLeaderboard = [
   { id: 1, name: 'John', score: 100 },
